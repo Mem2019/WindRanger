@@ -22,7 +22,8 @@ BIN_PATH     = $(PREFIX)/bin
 
 VERSION     = $(shell grep '^\#define VERSION ' ../config.h | cut -d '"' -f2)
 
-LLVM_CONFIG ?= llvm-config
+LLVM_CONFIG ?= llvm-config-12
+AFL_REAL_LD  = $(shell which ld.lld)
 
 CFLAGS      ?= -O3 -funroll-loops
 CFLAGS      += -Wall -D_FORTIFY_SOURCE=2 -g -Wno-pointer-sign \
@@ -77,7 +78,7 @@ endif
 	@echo "[+] All set and ready to build."
 
 ../afl-clang-fast: afl-clang-fast.c | test_deps
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -DAFL_REAL_LD="\"$(AFL_REAL_LD)\"" $< -o $@ $(LDFLAGS)
 	ln -sf afl-clang-fast ../afl-clang-fast++
 
 ../afl-llvm-pass.so: afl-llvm-pass.so.cc | test_deps
