@@ -117,9 +117,9 @@ static u8* create_temp_dir(const char* target_name) {
   fclose(fd);
 
   // Create directories and files as init of dir
-  const char* tmp_dir = getenv("WR_TEMP_DIR");
+  const char* tmp_dir = getenv("WR_TMP_DIR");
   if (tmp_dir && tmp_dir[0] != '/')
-    FATAL("Please use absolute path for WR_TEMP_DIR");
+    FATAL("Please use absolute path for WR_TMP_DIR");
   u8* ret = alloc_printf("%s/%s.%s",
     tmp_dir ? tmp_dir : "/tmp", target_name, dir_name);
   if (mkdir(ret, 0700) < 0) FATAL("mkdir() failed");
