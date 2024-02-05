@@ -99,6 +99,33 @@ static void find_obj(u8* argv0) {
 
 }
 
+static const char b64_tab[64] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+static u8* create_temp_dir(const char* target_name) {
+
+  // Generate random directory name
+  FILE* fd = fopen("/dev/urandom", "rb");
+  if (fd == NULL)
+    FATAL("Cannot open urandom");
+  char dir_name[13];
+  u8 tmp;
+  for (size_t i = 0; i < sizeof(dir_name) - 1; ++i) {
+    if (fread(&tmp, 1, 1, fd) != 1)
+      FATAL("fread() failed");
+    dir_name[i] = b64_tab[tmp % sizeof(b64_tab)];
+  }
+  dir_name[sizeof(dir_name) - 1] = 0;
+  fclose(fd);
+
+  // Create directories and files as init of dir
+  const char* tmp_dir = getenv("WR_TEMP_DIR");
+  if (tmp_dir && tmp_dir[0] != '/')
+    FATAL("Please use absolute path for WR_TEMP_DIR");
+  u8* ret = alloc_printf("%s/%s.%s",
+    tmp_dir ? tmp_dir : "/tmp", target_name, dir_name);
+  if (mkdir(ret, 0700) < 0) FATAL("mkdir() failed");
+  return ret;
+}
+
 static void parse_out(const char* out, u8** dir, u8** name) {
   if (out == NULL)
     FATAL("No out file path");
@@ -346,6 +373,9 @@ static void edit_params(u32 argc, char** argv) {
         "-Wl,-mllvm=-load=%s/libcbi.so", obj_path);
       cc_params[cc_par_cnt++] = alloc_printf(
         "-Wl,-mllvm=-targets=%s", bb_targets);
+      const u8* tmp = create_temp_dir(target_name);
+      cc_params[cc_par_cnt++] = alloc_printf(
+        "-Wl,-mllvm=-tmpdir=%s", tmp);
 
     } else {
       // Use AFL instrumentation when no target is specified.

@@ -10146,9 +10146,32 @@ int stricmp(char const *a, char const *b) {
   }
 }
 
-void readDistanceAndTargets() {
-  FILE* distance_file = fopen("distance.txt","r");
-  FILE* targets_file = fopen("targets.txt","r");
+const char* get_tmp_dir(const char* exe_path) {
+
+  int fd = open(exe_path, O_RDONLY);
+  if (fd < 0) FATAL("Cannot open the executable");
+
+  struct stat sb;
+  if (fstat(fd, &sb) < 0) FATAL("fstat() failed");
+
+  char *data = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  if (data == MAP_FAILED) FATAL("mmap() failed");
+
+  const char* pattern = "##SIG_WR_TMP_DIR##=";
+  size_t pattern_len = strlen(pattern);
+  const char* res = memmem(data, sb.st_size, pattern, pattern_len);
+  if (res == NULL) FATAL("Cannot find tmp dir path");
+
+  char* ret = strdup(res);
+  munmap(data, sb.st_size);
+  close(fd);
+
+  return ret;
+}
+
+void readDistanceAndTargets(const char* tmp_dir) {
+  FILE* distance_file = fopen(alloc_printf("%s/distance.txt", tmp_dir),"r");
+  FILE* targets_file = fopen(alloc_printf("%s/targets.txt", tmp_dir),"r");
   char buf[1024];
 
   if (distance_file==NULL)
@@ -10187,8 +10210,9 @@ void readDistanceAndTargets() {
   fclose(targets_file);
 }
 
-void readCondition() {
-  FILE* condition_file = fopen("condition_info.txt","r");
+void readCondition(const char* tmp_dir) {
+  FILE* condition_file = fopen(
+    alloc_printf("%s/condition_info.txt", tmp_dir),"r");
   char buf[1024];
 
   if (condition_file==NULL)
@@ -10575,8 +10599,9 @@ int main(int argc, char** argv) {
   check_crash_handling();
   check_cpu_governor();
 
-  readDistanceAndTargets();
-  readCondition();
+  const char* tmp_dir = get_tmp_dir(argv[optind]);
+  readDistanceAndTargets(tmp_dir);
+  readCondition(tmp_dir);
 
   setup_post();
   setup_shm();

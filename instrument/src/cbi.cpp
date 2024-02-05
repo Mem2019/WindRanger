@@ -22,6 +22,10 @@ cl::opt<std::string> TargetsFile(
     "targets",
     cl::desc("Input file containing the target lines of code."),
     cl::value_desc("targets"));
+cl::opt<std::string> TmpDir(
+    "tmpdir",
+    cl::desc("Temporary directory containing the analysis results."),
+    cl::value_desc("tmpdir"));
 
 std::map<const SVFFunction*,double> dTf;
 std::vector<std::map<const SVFFunction*,uint32_t>> dtf;
@@ -249,7 +253,7 @@ void countVanillaDistance(std::vector<NodeID> target_ids){
 	}
 
 	// for (auto item : dTb) {
-	// 	std::cout << getDebugInfo(item.first) << " : " << item.second << std::endl;
+	// 	std::cerr << getDebugInfo(item.first) << " : " << item.second << std::endl;
 	// }
 }
 
@@ -298,9 +302,9 @@ void identifyCriticalBB() {
 }
 
 void instrument() {
-	ofstream outfile("distance.txt", std::ios::out);
-	ofstream outfile2("functions.txt", std::ios::out);
-	ofstream outfile3("targets.txt", std::ios::out);
+	ofstream outfile(TmpDir + "/distance.txt", std::ios::out);
+	ofstream outfile2(TmpDir + "/functions.txt", std::ios::out);
+	ofstream outfile3(TmpDir + "/targets.txt", std::ios::out);
 	uint32_t bb_id = 0;
 	uint32_t func_id = 0;
 	uint32_t target_id = 0;
@@ -437,6 +441,14 @@ void instrument() {
 	outfile.close();
 	outfile2.close();
 	outfile3.close();
+
+	// Store path of the tmpdir into binary.
+	std::string tmp("##SIG_WR_TMP_DIR##=");
+	tmp += TmpDir;
+	new GlobalVariable(
+		*M, ArrayType::get(Int8Ty, tmp.size() + 1), true,
+		GlobalValue::PrivateLinkage, ConstantDataArray::getString(*C, tmp),
+		"__wr_path_to_temp_dir");
 }
 
 void analyzeCondition() {
@@ -538,7 +550,7 @@ void analyzeCondition() {
         }
    }
 	ofstream outfile;
-    outfile.open("condition_info.txt",std::ios::out);
+    outfile.open(TmpDir + "/condition_info.txt",std::ios::out);
 
     if (!outfile.is_open()) {
         std::cerr << "EError opening file" << std::endl;
@@ -633,7 +645,7 @@ std::vector<NodeID> loadTargets(std::string filename) {
 		std::cerr << "can't open target file!" << std::endl;
 		exit(1);
 	}
-	std::cout << "loading targets..." << std::endl;
+	std::cerr << "loading targets..." << std::endl;
 	std::vector<NodeID> result;
 	std::vector<std::pair<std::string,u32_t>> targets;
 	std::string line;
@@ -717,16 +729,16 @@ void inst_wr(Module &M_)
 	C = &(LLVMModuleSet::getLLVMModuleSet()->getContext());
 
 	std::vector<NodeID> target_ids = loadTargets(TargetsFile);
-	std::cout << "caculate vanilla distance..." << std::endl;
+	std::cerr << "caculate vanilla distance..." << std::endl;
 	countVanillaDistance(target_ids);
-	std::cout << "identiy critical bb..." << std::endl;
+	std::cerr << "identiy critical bb..." << std::endl;
 	identifyCriticalBB();
-	std::cout << "instrument distance..." << std::endl;
+	std::cerr << "instrument distance..." << std::endl;
 	instrument();
 	//LLVMModuleSet::getLLVMModuleSet()->dumpModulesToFile(".cbi.bc");
-	std::cout << "analyze condition..." << std::endl;
+	std::cerr << "analyze condition..." << std::endl;
 	analyzeCondition();
-	std::cout << "instrument condition..." << std::endl;
+	std::cerr << "instrument condition..." << std::endl;
 	instrumentCondition();
 	LLVMModuleSet::getLLVMModuleSet()->dumpModulesToFile(".ci.bc");
 }

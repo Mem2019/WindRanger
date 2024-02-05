@@ -90,7 +90,7 @@ afl-gotcpu: afl-gotcpu.c $(COMM_HDR) | test_x86
 
 libcbi.so: instrument/src/cbi.cpp instrument/src/CMakeLists.txt instrument/CMakeLists.txt
 	cd $(CURDIR)/SVF && ./build.sh
-	cd $(CURDIR)/instrument && mkdir build && cd build && cmake .. && make
+	cd $(CURDIR)/instrument && rm -rf build && mkdir build && cd build && cmake .. && make
 	mv instrument/build/src/libcbi.so libcbi.so
 
 ifndef AFL_NO_X86
