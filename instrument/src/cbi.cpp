@@ -717,7 +717,7 @@ std::vector<NodeID> loadTargets(std::string filename) {
 	return result;
 }
 
-void inst_wr(Module &M_) 
+void inst_wr(Module &M_)
 {
 	svfModule = LLVMModuleSet::getLLVMModuleSet()->buildSVFModule(M_);
 

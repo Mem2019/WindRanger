@@ -15,9 +15,9 @@
 
 PROGNAME    = afl
 VERSION     = $(shell grep '^\#define VERSION ' config.h | cut -d '"' -f2)
-LLVM_CONF  ?= llvm-config-12
+LLVM_CONFIG ?= llvm-config
 
-export LLVM_DIR = $(shell $(LLVM_CONF) --prefix)
+export LLVM_DIR = $(shell $(LLVM_CONFIG) --prefix)
 export SVF_DIR = $(CURDIR)/SVF
 
 PREFIX     ?= /usr/local
