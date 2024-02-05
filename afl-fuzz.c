@@ -10162,7 +10162,7 @@ const char* get_tmp_dir(const char* exe_path) {
   const char* res = memmem(data, sb.st_size, pattern, pattern_len);
   if (res == NULL) FATAL("Cannot find tmp dir path");
 
-  char* ret = strdup(res);
+  char* ret = strdup(res + pattern_len);
   munmap(data, sb.st_size);
   close(fd);
 
