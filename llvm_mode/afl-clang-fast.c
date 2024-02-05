@@ -201,6 +201,11 @@ static void edit_params(u32 argc, char** argv) {
 
 #ifdef USE_TRACE_PC
 #error "trace-pc mode is not supported."
+#else
+  cc_params[cc_par_cnt++] = "-Xclang";
+  cc_params[cc_par_cnt++] = "-load";
+  cc_params[cc_par_cnt++] = "-Xclang";
+  cc_params[cc_par_cnt++] = alloc_printf("%s/afl-llvm-pass.so", obj_path);
 #endif /* ^USE_TRACE_PC */
 
   cc_params[cc_par_cnt++] = "-Qunused-arguments";
@@ -376,11 +381,6 @@ static void edit_params(u32 argc, char** argv) {
       const u8* tmp = create_temp_dir(target_name);
       cc_params[cc_par_cnt++] = alloc_printf(
         "-Wl,-mllvm=-tmpdir=%s", tmp);
-
-    } else {
-      // Use AFL instrumentation when no target is specified.
-      cc_params[cc_par_cnt++] = alloc_printf(
-        "-Wl,-mllvm=-load=%s/afl-llvm-pass.so", obj_path);
 
     }
 
