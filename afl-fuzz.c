@@ -373,7 +373,7 @@ static FILE* distance_log;
 
 static FILE* mutation_log;
 
-static FILE* targets_log;
+// static FILE* targets_log;
 
 static FILE* crashes_log;
 
@@ -3618,7 +3618,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
         targets_all = 0;
         if (flag) {
           last_target_time = get_cur_time();
-          fprintf(targets_log, "%d : %s --- %s --- %s\n",i,DTD(last_target_time,start_time),DI(queued_paths),DI(total_execs));
+          // fprintf(targets_log, "%d : %s --- %s --- %s\n",i,DTD(last_target_time,start_time),DI(queued_paths),DI(total_execs));
           targets_bits[i] = 1;
         }
       }
@@ -6047,7 +6047,7 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
       targets_all = 0;
       if (flag) {
         last_target_time = get_cur_time();
-        fprintf(targets_log, "%d : %s --- %s --- %s\n",i,DTD(last_target_time,start_time),DI(queued_paths),DI(total_execs));
+        // fprintf(targets_log, "%d : %s --- %s --- %s\n",i,DTD(last_target_time,start_time),DI(queued_paths),DI(total_execs));
         targets_bits[i] = 1;
       }
     }
@@ -10636,7 +10636,7 @@ int main(int argc, char** argv) {
   mutation_log = fopen(tmp,"w");
   ck_free(tmp);
   tmp = alloc_printf("%s/targets.log",out_dir);
-  targets_log = fopen(tmp,"w");
+  // targets_log = fopen(tmp,"w");
   ck_free(tmp);
   tmp = alloc_printf("%s/crashes.log",out_dir);
   crashes_log = fopen(tmp,"w");
